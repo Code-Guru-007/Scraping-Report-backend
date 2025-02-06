@@ -10,18 +10,32 @@ exports.createReport = async (req, res) => {
     return res.json({status: "success"})
   } catch (error) {
     console.log("=======     Create Product      =======\n", error)
-    return res.json({status: 'failed'})
+    return res.json({status: 'failed', error: error.message})
   }
 
 };
 
 exports.getAllReports = async (req, res) => {
+  const { filterDate } = req.query; // Get filterDate from query params
+
   try {
-    const reports = await normattivaModel.find();
-    return res.json({status: 'success', reports});
+      let reports;
+      console.log(typeof filterDate)
+      if (filterDate === "null" || filterDate === "undefined") {
+        reports = await normattivaModel.find();
+      } else {
+        const date = new Date(filterDate);
+        const startOfDay = new Date(date.setHours(0, 0, 0, 0)); // 00:00:00 UTC
+        const endOfDay = new Date(date.setHours(23, 59, 59, 999)); // 23:59:59 UTC
+
+        reports = await normattivaModel.find({
+          dateTime: { $gte: startOfDay, $lte: endOfDay }
+        });
+      }
+      return res.json({ status: 'success', reports });
   } catch (error) {
-    console.log("=======     Get All Reports      =======\n", error)
-    return res.json({status: 'failed'})
+      console.error("======= Get All Reports Error =======\n", error);
+      return res.json({ status: 'failed', error: error.message });
   }
 };
 

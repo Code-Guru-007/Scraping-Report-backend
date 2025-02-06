@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const normattivaSchema = new Schema({
     dateTime: { type: Date,  },
     status: { type: Boolean, },
-    fileName: { type: String, unique: true},
+    fileName: { type: String, },
     fileLink: { type: String, }
   });
 
