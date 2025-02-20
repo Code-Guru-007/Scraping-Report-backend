@@ -25,8 +25,8 @@ exports.getAllReports = async (req, res) => {
         reports = await defFinanzeItModel.find().sort({dateTime: -1});
       } else {
         const date = new Date(filterDate);
-        const startOfDay = new Date(date.setHours(0, 0, 0, 0)); // 00:00:00 UTC
-        const endOfDay = new Date(date.setHours(23, 59, 59, 999)); // 23:59:59 UTC
+        const startOfDay = new Date(date.setUTCHours(0, 0, 0, 0)); // 00:00:00 UTC
+        const endOfDay = new Date(date.setUTCHours(23, 59, 59, 999)); // 23:59:59 UTC
 
         reports = await defFinanzeItModel.find({
           dateTime: { $gte: startOfDay, $lte: endOfDay }
