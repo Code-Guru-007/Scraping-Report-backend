@@ -1,11 +1,11 @@
 const fs = require('fs');
-const normattivaModel = require('../model/normattiva')
+const defFinanzeItModel = require('../model/def.finanze.it')
 const mongoose = require('mongoose');
 
 // Create
 exports.createReport = async (req, res) => {
   try {
-    const newReport = new normattivaModel(req.body);
+    const newReport = new defFinanzeItModel(req.body);
     await newReport.save()
     return res.json({status: "success"})
   } catch (error) {
@@ -16,38 +16,23 @@ exports.createReport = async (req, res) => {
 };
 
 exports.getAllReports = async (req, res) => {
-  const { filterDate, page, rowsPerPage } = req.query; // Get filterDate from query params
+  const { filterDate } = req.query; // Get filterDate from query params
 
   try {
       let reports;
-      let total;
       console.log(typeof filterDate)
       if (filterDate === "null" || filterDate === "undefined") {
-        reports = await normattivaModel
-          .find()
-          .sort({dateTime: -1})
-          .skip(page * rowsPerPage)
-          .limit(rowsPerPage);
-        total = await normattivaModel
-          .countDocuments({});
+        reports = await defFinanzeItModel.find().sort({dateTime: -1});
       } else {
         const date = new Date(filterDate);
         const startOfDay = new Date(date.setHours(0, 0, 0, 0)); // 00:00:00 UTC
         const endOfDay = new Date(date.setHours(23, 59, 59, 999)); // 23:59:59 UTC
 
-        reports = await normattivaModel
-          .find({
-            dateTime: { $gte: startOfDay, $lte: endOfDay }
-          })
-          .sort({dateTime: -1})
-          .skip(page * rowsPerPage)
-          .limit(rowsPerPage);
-        total = await normattivaModel
-          .countDocuments({
-            dateTime: { $gte: startOfDay, $lte: endOfDay }
-          });
+        reports = await defFinanzeItModel.find({
+          dateTime: { $gte: startOfDay, $lte: endOfDay }
+        }).sort({dateTime: -1});
       }
-      return res.json({ status: 'success', reports, total});
+      return res.json({ status: 'success', reports });
   } catch (error) {
       console.error("======= Get All Reports Error =======\n", error);
       return res.json({ status: 'failed', error: error.message });

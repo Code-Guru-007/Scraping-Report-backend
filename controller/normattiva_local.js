@@ -1,11 +1,11 @@
 const fs = require('fs');
-const normattivaModel = require('../model/normattiva')
+const normattivaLocalModel = require('../model/normattiva_local')
 const mongoose = require('mongoose');
 
 // Create
 exports.createReport = async (req, res) => {
   try {
-    const newReport = new normattivaModel(req.body);
+    const newReport = new normattivaLocalModel(req.body);
     await newReport.save()
     return res.json({status: "success"})
   } catch (error) {
@@ -17,37 +17,37 @@ exports.createReport = async (req, res) => {
 
 exports.getAllReports = async (req, res) => {
   const { filterDate, page, rowsPerPage } = req.query; // Get filterDate from query params
-
   try {
-      let reports;
+      let reports = "";
       let total;
       console.log(typeof filterDate)
       if (filterDate === "null" || filterDate === "undefined") {
-        reports = await normattivaModel
+        reports = await normattivaLocalModel
           .find()
           .sort({dateTime: -1})
           .skip(page * rowsPerPage)
           .limit(rowsPerPage);
-        total = await normattivaModel
+        total = await normattivaLocalModel
           .countDocuments({});
       } else {
         const date = new Date(filterDate);
         const startOfDay = new Date(date.setHours(0, 0, 0, 0)); // 00:00:00 UTC
         const endOfDay = new Date(date.setHours(23, 59, 59, 999)); // 23:59:59 UTC
 
-        reports = await normattivaModel
+        reports = await normattivaLocalModel
           .find({
             dateTime: { $gte: startOfDay, $lte: endOfDay }
           })
           .sort({dateTime: -1})
           .skip(page * rowsPerPage)
           .limit(rowsPerPage);
-        total = await normattivaModel
+        total = await normattivaLocalModel
           .countDocuments({
             dateTime: { $gte: startOfDay, $lte: endOfDay }
           });
       }
-      return res.json({ status: 'success', reports, total});
+      console.log(total)
+      return res.json({ status: 'success', reports, total });
   } catch (error) {
       console.error("======= Get All Reports Error =======\n", error);
       return res.json({ status: 'failed', error: error.message });
