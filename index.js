@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const server = express();
 const path = require('path');
+const ftp = require('ftp');
+
 const normattivaRouter = require('./routes/normattiva')
 const normattivaLocalRouter = require('./routes/normattiva_local')
 const defFinanzeItRouter = require('./routes/def.finanze.it')
@@ -42,6 +44,63 @@ server.use('/api/def.finanze.it', defFinanzeItRouter.router);
 // server.use('*',(req,res)=>{
 //     res.sendFile(path.resolve(__dirname,'build','index.html'))
 // })
+
+// const ftpClient = new ftp();
+
+// server.get('/api/getpdf', (req, res) => {
+//   const { filePath, fileName } = req.query;
+
+//   // Connect to the FTP server
+//   ftpClient.connect({
+//       host: "109.205.183.137",
+//       user: "legal_doc@db-legale.professionista-ai.com",
+//       password: "G}SsFa@dB@&3"
+//   });
+
+//   // Handle errors on connection failure
+//   ftpClient.on('error', (err) => {
+//       console.error("FTP Connection Error:", err);
+//       if (!res.headersSent) {
+//           res.status(500).json({ error: "FTP Connection failed" });
+//       }
+//   });
+
+//   // When FTP is ready, fetch the file
+//   ftpClient.on('ready', () => {
+//       ftpClient.get(filePath, (err, stream) => {
+//           if (err) {
+//               console.error("File not found:", err);
+//               if (!res.headersSent) {
+//                   res.status(404).json({ error: "File not found" });
+//               }
+//               ftpClient.end(); // Close FTP connection
+//               return;
+//           }
+
+//           // Ensure headers are only sent once
+//           if (!res.headersSent) {
+//               res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+//               res.setHeader('Content-Type', 'application/pdf'); // Adjust for other file types
+//               stream.pipe(res);
+//           }
+
+//           // Handle FTP stream errors
+//           stream.on('error', (streamErr) => {
+//               console.error("Stream Error:", streamErr);
+//               if (!res.headersSent) {
+//                   res.status(500).json({ error: "Error reading file" });
+//               }
+//               ftpClient.end();
+//           });
+
+//           // Ensure FTP connection is closed when streaming ends
+//           stream.on('end', () => {
+//               ftpClient.end();
+//           });
+//       });
+//   });
+// });
+
 
 
 
