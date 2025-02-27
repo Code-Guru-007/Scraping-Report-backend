@@ -5,7 +5,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const server = express();
 const path = require('path');
-const ftp = require('ftp');
+const ftp = require('basic-ftp');
+const fs = require('fs')
 
 const normattivaRouter = require('./routes/normattiva')
 const normattivaLocalRouter = require('./routes/normattiva_local')
@@ -45,17 +46,7 @@ server.use('/api/def.finanze.it', defFinanzeItRouter.router);
 //     res.sendFile(path.resolve(__dirname,'build','index.html'))
 // })
 
-const ftpClient = new ftp();
 
-// server.get('/api/getpdf', (req, res) => {
-//   const { filePath, fileName } = req.query;
-
-//   // Connect to the FTP server
-//   ftpClient.connect({
-//       host: "109.205.183.137",
-//       user: "legal_doc@db-legale.professionista-ai.com",
-//       password: "G}SsFa@dB@&3"
-//   });
 const ftpConfig = {
   host: "109.205.183.137",
   user: "legal_doc@db-legale.professionista-ai.com",
@@ -64,40 +55,42 @@ const ftpConfig = {
 
 // Serve PDF file from FTP server
 server.get('/api/pdf', async (req, res) => {
-  const {pdfPath} = req.query;
-  const fileName = 'yourfile.pdf'; // Replace with the actual file name on the FTP server
+  const { pdfPath } = req.query;
   const tempFilePath = path.join(__dirname, 'tempfile.pdf');
 
-  const client = new FTPClient();
+  const client = new ftp.Client(); // Create a new FTP client instance
+  client.ftp.verbose = true; // Enable logging for debugging
 
   try {
-    // Connect to the FTP server
-    await client.access(ftpConfig);
-    
-    // Download the PDF file from FTP to a temporary location
-    await client.downloadTo(tempFilePath, pdfPath);
+    console.log("Connecting to FTP server...");
 
-    // Serve the file as a response
+    await client.access(ftpConfig); // Connect to FTP
+    console.log("Connected!");
+
+    console.log(`Downloading ${pdfPath} to ${tempFilePath}...`);
+    await client.downloadTo(tempFilePath, `/${pdfPath}`);
+    console.log("Download complete!");
+
     res.sendFile(tempFilePath, (err) => {
       if (err) {
-        res.status(500).send('Error sending the file.');
+        console.error("Error sending the file:", err);
+        res.status(500).send("Error sending the file.");
       }
 
-      // Delete the temporary file after sending
       fs.unlink(tempFilePath, (err) => {
         if (err) {
-          console.error('Failed to delete temporary file', err);
+          console.error("Failed to delete temporary file:", err);
         }
       });
     });
   } catch (err) {
-    console.error('Error fetching PDF from FTP:', err);
-    res.status(500).send('Error fetching PDF from FTP server.');
+    console.error("Error fetching PDF from FTP:", err);
+    res.status(500).send("Error fetching PDF from FTP server.");
   } finally {
-    client.close();
+    console.log("Closing FTP connection...");
+    await client.close(); // Properly close the FTP connection
   }
 });
-
 
 server.listen(process.env.PORT, () => {
   console.log('server started');
